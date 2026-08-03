@@ -73,7 +73,7 @@ $('fileInput').addEventListener('change', async (e) => {
     const res = await fetchTimeout('/api/import', { method: 'POST', body: fd }, 60000);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Import алдаа');
-    editors.src.innerHTML = data.html || '<p></p>';
+    editors.src.innerHTML = sanitizeImported(data.html || '<p></p>');
     showWarnings(data.warnings);
     saveDraft();
     setStatus(`"${data.name}" ороллоо.`, 'ok');
@@ -84,6 +84,21 @@ $('fileInput').addEventListener('change', async (e) => {
     e.target.value = '';
   }
 });
+
+// Импортын HTML-ээс асуудалтай фонтыг цэвэрлэнэ (ү/ө → □ болохоос сэргийлнэ)
+function sanitizeImported(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  // <font face> -> устгах (агуулгыг үлдээж)
+  tmp.querySelectorAll('font').forEach((f) => f.removeAttribute('face'));
+  // style доторх font-family-г арилгах
+  tmp.querySelectorAll('[style]').forEach((el) => {
+    const s = el.getAttribute('style').replace(/font-family\s*:[^;]+;?/gi, '').trim();
+    if (s) el.setAttribute('style', s);
+    else el.removeAttribute('style');
+  });
+  return tmp.innerHTML;
+}
 
 function showWarnings(warnings) {
   const box = $('warnings');
@@ -165,34 +180,37 @@ $('translateBoth').addEventListener('click', async () => {
   await translate('en');
 });
 
-// ---------- Албан бичгийн толгой оруулах ----------
-$('insertHead').addEventListener('click', () => {
-  const today = new Date().toISOString().slice(0, 10);
-  const tpl = `
-    <table style="width:100%;border:0;margin-bottom:8px">
-      <tr>
-        <td style="border:0;text-align:left;vertical-align:top">
-          <strong>[БАЙГУУЛЛАГЫН НЭР]</strong><br/>
-          <small>[Хаяг · Утас · И-мэйл]</small>
-        </td>
-        <td style="border:0;text-align:right;vertical-align:top">
-          Огноо: ${today}<br/>
-          Дугаар: №______
-        </td>
-      </tr>
-    </table>
-    <hr/>
-    <h1 style="text-align:center">[БИЧИГ БАРИМТЫН ГАРЧИГ]</h1>
-    <p>Хүлээн авагч: ____________________</p>
-    <p>&nbsp;</p>
-    <p>[Үндсэн агуулга энд...]</p>
-    <p>&nbsp;</p>
-    <p style="text-align:right">Хүндэтгэсэн,<br/>____________________<br/>[Албан тушаал · Нэр]</p>
-  `;
-  editors.src.focus();
-  clearPlaceholder(editors.src);
-  document.execCommand('insertHTML', false, tpl);
+// ---------- Темплейт сонгох ----------
+const tplModal = $('tplModal');
+function buildTemplateGrid() {
+  const grid = $('tplGrid');
+  grid.innerHTML = '';
+  (window.TEMPLATES || []).forEach((t) => {
+    const card = document.createElement('div');
+    card.className = 'tpl-card';
+    card.innerHTML = `<div class="emoji">${t.emoji || '📄'}</div><div class="name">${t.name}</div><div class="desc">${t.desc || ''}</div>`;
+    card.addEventListener('click', () => applyTemplate(t));
+    grid.appendChild(card);
+  });
+}
+function applyTemplate(t) {
+  const cur = editors.src.innerHTML.replace(/<[^>]+>/g, '').trim();
+  const hasContent = cur && !editors.src.querySelector('.placeholder');
+  if (hasContent && !confirm(`"${t.name}" темплейтийг оруулах уу? Эх хувь дээрх одоогийн агуулга солигдоно.`)) return;
+  editors.src.innerHTML = t.html;
+  editors.ja.innerHTML = '';
+  editors.en.innerHTML = '';
   saveDraft();
+  tplModal.hidden = true;
+  setStatus(`"${t.name}" темплейт орлоо.`, 'ok');
+}
+$('openTemplates').addEventListener('click', () => {
+  buildTemplateGrid();
+  tplModal.hidden = false;
+});
+$('tplClose').addEventListener('click', () => (tplModal.hidden = true));
+tplModal.addEventListener('click', (e) => {
+  if (e.target === tplModal) tplModal.hidden = true;
 });
 
 // ---------- Эх хувийг цэвэрлэх ----------

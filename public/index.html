@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Баримт бичиг — орчуулга ба гаргац</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="doc-styles.css" />
 </head>
 <body>
   <header class="topbar">
@@ -47,7 +48,7 @@
       <label class="btn small file-btn">🖼 Зураг
         <input id="imgInput" type="file" accept="image/*" hidden />
       </label>
-      <button id="insertHead" class="btn small" title="Албан бичгийн толгой оруулах">🏛 Албан толгой</button>
+      <button id="openTemplates" class="btn small primary" title="Дизайн темплейт сонгох">✨ Темплейт</button>
       <button id="clearAll" class="btn small" title="Эх хувийг цэвэрлэх">🗑 Цэвэрлэх</button>
     </div>
     <div class="tb-spacer"></div>
@@ -69,7 +70,7 @@
           <button id="translateEn" class="btn small">→ English</button>
         </div>
       </div>
-      <div id="editorSrc" class="editor" contenteditable="true">
+      <div id="editorSrc" class="editor doc-body" contenteditable="true">
         <p class="placeholder">Файл оруулах эсвэл энд шууд бичиж эхэлнэ үү. Зураг чирж оруулж болно.</p>
       </div>
     </section>
@@ -82,7 +83,7 @@
           <button class="btn small" data-copy="editorJa">⧉ Хуулах</button>
         </div>
       </div>
-      <div id="editorJa" class="editor" contenteditable="true">
+      <div id="editorJa" class="editor doc-body" contenteditable="true">
         <p class="placeholder">Орчуулга энд гарна.</p>
       </div>
     </section>
@@ -95,7 +96,7 @@
           <button class="btn small" data-copy="editorEn">⧉ Copy</button>
         </div>
       </div>
-      <div id="editorEn" class="editor" contenteditable="true">
+      <div id="editorEn" class="editor doc-body" contenteditable="true">
         <p class="placeholder">Translation appears here.</p>
       </div>
     </section>
@@ -117,6 +118,19 @@
 
   <div id="overlay" class="overlay" hidden><div class="spinner"></div><span id="overlayText">Ажиллаж байна…</span></div>
 
+  <!-- Темплейт сонгох цонх -->
+  <div id="tplModal" class="modal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <strong>✨ Дизайн темплейт сонгох</strong>
+        <button id="tplClose" class="btn small">✕</button>
+      </div>
+      <div class="modal-note">Темплейт сонгоход эх хувь дээр орж ирнэ. Дараа нь [хаалтан доторх] хэсгүүдийг засаад орчуулж, PDF/Word болгоно.</div>
+      <div id="tplGrid" class="tpl-grid"></div>
+    </div>
+  </div>
+
+  <script src="templates.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

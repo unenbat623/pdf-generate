@@ -1,0 +1,88 @@
+/* Баримт бичгийн дизайн — засварлагч болон PDF-д хамтдаа хэрэглэнэ (.doc-body доор). */
+
+.doc-body { color: #1a1a1a; }
+.doc-body h1, .doc-body h2, .doc-body h3, .doc-body p, .doc-body ul, .doc-body ol { margin: 0 0 8px; }
+.doc-body p { line-height: 1.55; }
+.doc-body img { max-width: 100%; height: auto; }
+.doc-body table { border-collapse: collapse; width: 100%; }
+
+/* ---------- Ерөнхий хуудасны толгой (running header) ---------- */
+.doc-runhead {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10.5pt; color: #4a5568; border-bottom: 3px solid; border-image: linear-gradient(90deg,#2c3e50,#8aa4bd) 1;
+  padding-bottom: 6px; margin-bottom: 14px;
+}
+.doc-runhead .r { font-style: italic; }
+
+/* ---------- Гарчгийн блок ---------- */
+.doc-title { text-align: center; margin: 6px 0 4px; }
+.doc-title h1 { font-size: 26pt; color: #2c4a5e; font-weight: 800; letter-spacing: .2px; }
+.doc-title .sub { font-style: italic; color: #566; font-size: 12pt; margin-top: 2px; }
+
+.doc-section-title {
+  font-size: 14pt; font-weight: 700; color: #2c4a5e; margin: 18px 0 8px;
+}
+
+/* ---------- Мэдээллийн хүснэгт (шошго | утга) ---------- */
+.doc-infotable { border: 1px solid #cdd8e0; }
+.doc-infotable td { border: 1px solid #cdd8e0; padding: 10px 12px; vertical-align: top; font-size: 11pt; }
+.doc-infotable td.label {
+  background: #dfeaf0; font-weight: 700; color: #2c4a5e; width: 130px; white-space: nowrap;
+}
+.doc-infotable ol, .doc-infotable ul { margin: 0; padding-left: 18px; }
+.doc-infotable li { margin: 2px 0; }
+
+/* ---------- Ач холбогдлын тайлбар (legend) ---------- */
+.doc-legend { display: flex; gap: 10px; margin: 16px 0; }
+.doc-legend .chip {
+  flex: 1; text-align: center; padding: 10px 8px; border-radius: 8px; font-weight: 700; font-size: 10.5pt;
+}
+.doc-legend .red { background: #f3d3cf; color: #922b21; }
+.doc-legend .orange { background: #f7e2cf; color: #a35418; }
+.doc-legend .blue { background: #d7e3ef; color: #2c4a5e; }
+
+/* ---------- Асуудлын картууд ---------- */
+.doc-cards { display: flex; gap: 10px; margin: 8px 0 6px; }
+.doc-cards .card {
+  flex: 1; border: 1.5px solid; border-radius: 10px; padding: 10px 10px 22px; position: relative;
+  font-size: 10.5pt; min-height: 70px; background: #fff;
+}
+.doc-cards .card .n { font-weight: 800; }
+.doc-cards .card .t { font-weight: 700; margin-top: 4px; }
+.doc-cards .card.red { border-color: #d98b82; }
+.doc-cards .card.red .n { color: #b03a2e; }
+.doc-cards .card.orange { border-color: #e3b58a; }
+.doc-cards .card.orange .n { color: #a35418; }
+.doc-cards .card.blue { border-color: #9bb4cc; }
+.doc-cards .card.blue .n { color: #2c4a5e; }
+.doc-cards .card .bar {
+  position: absolute; left: 8px; right: 8px; bottom: 8px; height: 8px; border-radius: 4px; background: #a03226;
+}
+
+/* ---------- Урсгал диаграм ---------- */
+.doc-flow { display: flex; align-items: center; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+.doc-flow .step {
+  background: #dfeaf3; border: 1px solid #b9cbdd; border-radius: 8px; padding: 12px 10px;
+  text-align: center; font-size: 10pt; flex: 1; min-width: 90px; color: #223;
+}
+.doc-flow .arrow { color: #8aa4bd; font-weight: 800; font-size: 14pt; }
+
+/* ---------- Албан тоот (letter) ---------- */
+.doc-letter { padding: 0 12mm; }
+.doc-letterhead { display: flex; justify-content: space-between; border-bottom: 2px solid #2c4a5e; padding-bottom: 8px; }
+.doc-letterhead .org { font-weight: 800; color: #2c4a5e; font-size: 13pt; }
+.doc-letterhead .meta { text-align: right; font-size: 10.5pt; color: #445; }
+.doc-letter .to { margin-top: 16px; }
+.doc-letter .sign { margin-top: 28px; text-align: right; }
+
+/* ---------- Тайлан хавтас ---------- */
+.doc-cover { text-align: center; padding: 40px 0 20px; border-top: 6px solid #2c4a5e; border-bottom: 6px solid #2c4a5e; }
+.doc-cover .kicker { letter-spacing: 3px; text-transform: uppercase; color: #7089a0; font-size: 11pt; }
+.doc-cover h1 { font-size: 30pt; color: #2c4a5e; margin: 10px 0; font-weight: 800; }
+.doc-cover .meta { color: #556; margin-top: 10px; }
+
+/* Хэвлэхэд картуудыг таслахгүй */
+@media print {
+  .doc-cards, .doc-flow, .doc-legend { break-inside: avoid; }
+  .doc-cards .card, .doc-flow .step { break-inside: avoid; }
+}

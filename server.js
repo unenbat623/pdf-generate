@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { parseFile } from './lib/parse.js';
 import { translateHtml, activeProvider } from './lib/translate.js';
 import { htmlToDocx } from './lib/export.js';
-import { htmlToPdf } from './lib/latex.js';
+import { htmlToPdf } from './lib/pdf.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -61,12 +61,12 @@ app.post('/api/export/docx', async (req, res) => {
   }
 });
 
-// PDF татах (LaTeX / tectonic — албан бичгийн стандарт хэлбэр)
+// PDF татах (Chromium / WYSIWYG — дизайн яг байгаагаар)
 app.post('/api/export/pdf', async (req, res) => {
   try {
     const { html, lang } = req.body || {};
     if (!html) return res.status(400).json({ error: 'html алга.' });
-    const buffer = await htmlToPdf(html, lang || 'src');
+    const buffer = await htmlToPdf(html, { lang: lang || 'src' });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="document-${lang || 'src'}.pdf"`);
     res.send(buffer);
