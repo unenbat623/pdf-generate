@@ -8,7 +8,6 @@ FROM node:20-bookworm-slim
 #  - fonts-liberation      → Times/Arial-төстэй
 RUN apt-get update && apt-get install -y --no-install-recommends \
       chromium \
-      libreoffice-writer libreoffice-calc \
       ca-certificates fontconfig \
       fonts-noto-core fonts-noto-cjk fonts-liberation \
  && rm -rf /var/lib/apt/lists/* \
@@ -25,8 +24,9 @@ RUN npm ci --omit=dev
 COPY . .
 
 # Chromium-ийн зам болон орчин
+# Тэмдэглэл: LibreOffice-ийг image хэт томроод Railway дийлэхгүй тул түр хассан.
+# import нь LibreOffice байхгүй үед автоматаар mammoth/SheetJS руу шилжинэ (parse.js).
 ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium" \
-    LIBREOFFICE_BIN="/usr/bin/soffice" \
     NODE_ENV=production \
     PORT=3000
 
