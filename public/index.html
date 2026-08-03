@@ -52,52 +52,37 @@
       <button id="clearAll" class="btn small" title="Эх хувийг цэвэрлэх">🗑 Цэвэрлэх</button>
     </div>
     <div class="tb-spacer"></div>
-    <div class="tb-group view-toggle">
-      <label><input type="checkbox" id="showSrc" checked /> Эх</label>
-      <label><input type="checkbox" id="showJa" checked /> 日本語</label>
-      <label><input type="checkbox" id="showEn" checked /> English</label>
-    </div>
   </div>
 
-  <main id="cols" class="columns">
+  <!-- Хэл солих таб -->
+  <div class="lang-tabs" id="langTabs">
+    <button class="lang-tab active" data-lang="src">📝 Эх хувь</button>
+    <button class="lang-tab" data-lang="ja">🇯🇵 日本語</button>
+    <button class="lang-tab" data-lang="en">🇬🇧 English</button>
+    <span class="lt-spacer"></span>
+    <button id="retranslate" class="btn small" title="Эх хувиас дахин орчуулах" hidden>🔄 Дахин орчуулах</button>
+    <button id="copyCur" class="btn small" title="Идэвхтэй хэлний бичвэрийг хуулах" hidden>⧉ Хуулах</button>
+  </div>
+
+  <main id="cols" class="single">
     <!-- Эх хувь -->
-    <section class="col" data-col="src">
-      <div class="col-head">
-        <span>Эх хувь (засварлах)</span>
-        <div class="col-btns">
-          <button id="translateBoth" class="btn small primary">→ 2 хэл</button>
-          <button id="translateJa" class="btn small">→ 日本語</button>
-          <button id="translateEn" class="btn small">→ English</button>
-        </div>
-      </div>
+    <section class="col active" data-col="src">
       <div id="editorSrc" class="editor doc-body" contenteditable="true">
-        <p class="placeholder">Файл оруулах эсвэл энд шууд бичиж эхэлнэ үү. Зураг чирж оруулж болно.</p>
+        <p class="placeholder">Файл оруулах, темплейт сонгох, эсвэл энд шууд бичиж эхэлнэ үү. Зураг чирж оруулж болно.</p>
       </div>
     </section>
 
     <!-- Япон -->
     <section class="col" data-col="ja">
-      <div class="col-head">
-        <span>日本語</span>
-        <div class="col-btns">
-          <button class="btn small" data-copy="editorJa">⧉ Хуулах</button>
-        </div>
-      </div>
       <div id="editorJa" class="editor doc-body" contenteditable="true">
-        <p class="placeholder">Орчуулга энд гарна.</p>
+        <p class="placeholder">「日本語」таб дээр дарахад эх хувь автоматаар орчуулагдана.</p>
       </div>
     </section>
 
     <!-- Англи -->
     <section class="col" data-col="en">
-      <div class="col-head">
-        <span>English</span>
-        <div class="col-btns">
-          <button class="btn small" data-copy="editorEn">⧉ Copy</button>
-        </div>
-      </div>
       <div id="editorEn" class="editor doc-body" contenteditable="true">
-        <p class="placeholder">Translation appears here.</p>
+        <p class="placeholder">Switch to “English” tab to auto-translate from the source.</p>
       </div>
     </section>
   </main>

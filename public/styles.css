@@ -74,7 +74,26 @@ body {
 .view-toggle { border: 0; gap: 12px; font-size: 13px; color: var(--muted); }
 .view-toggle label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
-/* Columns */
+/* Хэл солих таб */
+.lang-tabs {
+  display: flex; align-items: center; gap: 6px; padding: 8px 16px 0; background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.lang-tab {
+  border: 1px solid var(--line); border-bottom: none; background: #f3f5f8; color: var(--muted);
+  padding: 9px 18px; border-radius: 9px 9px 0 0; cursor: pointer; font-size: 14px; font-weight: 600;
+  position: relative; top: 1px;
+}
+.lang-tab:hover { background: #e9edf2; }
+.lang-tab.active { background: var(--panel); color: var(--brand-ink); border-color: var(--line); border-bottom: 2px solid var(--panel); }
+.lt-spacer { flex: 1; }
+
+/* Нэг цонхны харагдац */
+.single { flex: 1; display: flex; padding: 14px 16px; overflow: hidden; min-height: 0; }
+.single .col { display: none; }
+.single .col.active { display: flex; flex: 1; }
+
+/* Columns (олон баганат — ашиглагдахгүй болсон ч үлдээв) */
 .columns { flex: 1; display: flex; gap: 12px; padding: 14px 16px; overflow: hidden; min-height: 0; }
 .col {
   flex: 1; min-width: 0; display: flex; flex-direction: column;

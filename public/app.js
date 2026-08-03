@@ -152,7 +152,7 @@ async function translate(target) {
   const html = editors.src.innerHTML.trim();
   if (!html) {
     setStatus('Эх хувь хоосон байна.', 'err');
-    return;
+    return false;
   }
   busy(true, (target === 'ja' ? '日本語' : 'English') + ' руу орчуулж байна…');
   try {
@@ -166,20 +166,56 @@ async function translate(target) {
     editors[target].innerHTML = data.html;
     saveDraft();
     setStatus('Орчуулга бэлэн.', 'ok');
+    return true;
   } catch (err) {
     setStatus(
       err.name === 'AbortError' ? 'Орчуулга удаж хугацаа хэтэрлээ. Дахин оролдоно уу.' : err.message,
       'err'
     );
+    return false;
   } finally {
     busy(false);
   }
 }
-$('translateJa').addEventListener('click', () => translate('ja'));
-$('translateEn').addEventListener('click', () => translate('en'));
-$('translateBoth').addEventListener('click', async () => {
-  await translate('ja');
-  await translate('en');
+
+// ---------- Хэл солих таб ----------
+let activeLang = 'src';
+function isEmptyEditor(ed) {
+  return !ed.innerHTML.replace(/<[^>]+>/g, '').replace(/&nbsp;|\s/g, '').trim() || ed.querySelector('.placeholder');
+}
+async function switchLang(lang) {
+  // Таб идэвхжүүлэх
+  document.querySelectorAll('.lang-tab').forEach((b) => b.classList.toggle('active', b.dataset.lang === lang));
+  document.querySelectorAll('.col').forEach((c) => c.classList.toggle('active', c.dataset.col === lang));
+  activeLang = lang;
+  // Доод талын татах сонголтыг тохируулах
+  const sel = $('exportLang');
+  if (sel) sel.value = lang;
+  // Товчнуудыг харуулах/нуух
+  $('retranslate').hidden = lang === 'src';
+  $('copyCur').hidden = lang === 'src';
+  // Орчуулгын таб + хоосон бол автоматаар орчуулах
+  if ((lang === 'ja' || lang === 'en') && isEmptyEditor(editors[lang]) && !isEmptyEditor(editors.src)) {
+    await translate(lang);
+  }
+}
+document.querySelectorAll('.lang-tab').forEach((btn) => {
+  btn.addEventListener('click', () => switchLang(btn.dataset.lang));
+});
+$('retranslate').addEventListener('click', () => {
+  if (activeLang === 'ja' || activeLang === 'en') translate(activeLang);
+});
+$('copyCur').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(editors[activeLang].innerText);
+    setStatus('Хууллаа.', 'ok');
+  } catch {
+    setStatus('Хуулж чадсангүй.', 'err');
+  }
+});
+// Доод талын татах сонголтыг өөрчилвөл таб мөн шилжинэ
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'exportLang') switchLang(e.target.value);
 });
 
 // ---------- Темплейт сонгох ----------
@@ -223,29 +259,6 @@ $('clearAll').addEventListener('click', () => {
   editors.en.innerHTML = '';
   saveDraft();
   setStatus('Цэвэрлэлээ.', 'ok');
-});
-
-// ---------- Багана харуулах/нуух ----------
-function bindToggle(cbId, col) {
-  const cb = $(cbId);
-  const section = document.querySelector(`.col[data-col="${col}"]`);
-  cb.addEventListener('change', () => (section.hidden = !cb.checked));
-}
-bindToggle('showSrc', 'src');
-bindToggle('showJa', 'ja');
-bindToggle('showEn', 'en');
-
-// ---------- Хуулах ----------
-document.querySelectorAll('[data-copy]').forEach((b) => {
-  b.addEventListener('click', async () => {
-    const ed = $(b.dataset.copy);
-    try {
-      await navigator.clipboard.writeText(ed.innerText);
-      setStatus('Хууллаа.', 'ok');
-    } catch {
-      setStatus('Хуулж чадсангүй.', 'err');
-    }
-  });
 });
 
 // ---------- Export: Word ----------
