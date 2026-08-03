@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Баримт бичиг — орчуулга ба гаргац</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📄</span>
+      <div>
+        <strong>Баримт бичиг · Орчуулга</strong>
+        <small>Word / Excel / PDF → засах → 日本語 / English → PDF·Word</small>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="provider" class="badge" title="Орчуулгын провайдер">…</span>
+      <label class="btn file-btn">
+        ⬆ Файл оруулах
+        <input id="fileInput" type="file" accept=".docx,.xlsx,.xls,.pdf,.png,.jpg,.jpeg,.gif,.webp" hidden />
+      </label>
+    </div>
+  </header>
+
+  <div id="warnings" class="warnings" hidden></div>
+
+  <div class="toolbar" id="toolbar">
+    <div class="tb-group">
+      <button data-cmd="bold" title="Тод"><b>B</b></button>
+      <button data-cmd="italic" title="Налуу"><i>I</i></button>
+      <button data-cmd="underline" title="Доогуур зураас"><u>U</u></button>
+    </div>
+    <div class="tb-group">
+      <button data-block="h1" title="Гарчиг 1">H1</button>
+      <button data-block="h2" title="Гарчиг 2">H2</button>
+      <button data-block="p" title="Догол мөр">¶</button>
+      <button data-cmd="insertUnorderedList" title="Жагсаалт">•</button>
+    </div>
+    <div class="tb-group">
+      <button data-cmd="justifyLeft" title="Зүүн">⯇</button>
+      <button data-cmd="justifyCenter" title="Голлуулах">≡</button>
+      <button data-cmd="justifyRight" title="Баруун">⯈</button>
+    </div>
+    <div class="tb-group">
+      <label class="btn small file-btn">🖼 Зураг
+        <input id="imgInput" type="file" accept="image/*" hidden />
+      </label>
+      <button id="insertHead" class="btn small" title="Албан бичгийн толгой оруулах">🏛 Албан толгой</button>
+      <button id="clearAll" class="btn small" title="Эх хувийг цэвэрлэх">🗑 Цэвэрлэх</button>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-group view-toggle">
+      <label><input type="checkbox" id="showSrc" checked /> Эх</label>
+      <label><input type="checkbox" id="showJa" checked /> 日本語</label>
+      <label><input type="checkbox" id="showEn" checked /> English</label>
+    </div>
+  </div>
+
+  <main id="cols" class="columns">
+    <!-- Эх хувь -->
+    <section class="col" data-col="src">
+      <div class="col-head">
+        <span>Эх хувь (засварлах)</span>
+        <div class="col-btns">
+          <button id="translateBoth" class="btn small primary">→ 2 хэл</button>
+          <button id="translateJa" class="btn small">→ 日本語</button>
+          <button id="translateEn" class="btn small">→ English</button>
+        </div>
+      </div>
+      <div id="editorSrc" class="editor" contenteditable="true">
+        <p class="placeholder">Файл оруулах эсвэл энд шууд бичиж эхэлнэ үү. Зураг чирж оруулж болно.</p>
+      </div>
+    </section>
+
+    <!-- Япон -->
+    <section class="col" data-col="ja">
+      <div class="col-head">
+        <span>日本語</span>
+        <div class="col-btns">
+          <button class="btn small" data-copy="editorJa">⧉ Хуулах</button>
+        </div>
+      </div>
+      <div id="editorJa" class="editor" contenteditable="true">
+        <p class="placeholder">Орчуулга энд гарна.</p>
+      </div>
+    </section>
+
+    <!-- Англи -->
+    <section class="col" data-col="en">
+      <div class="col-head">
+        <span>English</span>
+        <div class="col-btns">
+          <button class="btn small" data-copy="editorEn">⧉ Copy</button>
+        </div>
+      </div>
+      <div id="editorEn" class="editor" contenteditable="true">
+        <p class="placeholder">Translation appears here.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottombar">
+    <div class="export-group">
+      <span class="export-label">Татах:</span>
+      <select id="exportLang">
+        <option value="src">Эх хувь</option>
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+      <button id="exportDocx" class="btn">⬇ Word (.docx)</button>
+      <button id="exportPdf" class="btn">⬇ PDF (хэвлэх)</button>
+    </div>
+    <div id="status" class="status"></div>
+  </footer>
+
+  <div id="overlay" class="overlay" hidden><div class="spinner"></div><span id="overlayText">Ажиллаж байна…</span></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

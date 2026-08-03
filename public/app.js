@@ -1,0 +1,332 @@
+const $ = (id) => document.getElementById(id);
+const editors = {
+  src: $('editorSrc'),
+  ja: $('editorJa'),
+  en: $('editorEn'),
+};
+
+// ---------- Overlay / status ----------
+let overlaySafety;
+function busy(on, text = 'Ажиллаж байна…') {
+  $('overlayText').textContent = text;
+  $('overlay').hidden = !on;
+  clearTimeout(overlaySafety);
+  // Аюулгүйн хамгаалалт: 40 секундээс хойш ямар ч тохиолдолд overlay-г хаана.
+  if (on) {
+    overlaySafety = setTimeout(() => {
+      $('overlay').hidden = true;
+      setStatus('Хүсэлт удаж байгаа тул зогсоолоо. Дахин оролдоно уу.', 'err');
+    }, 40000);
+  }
+}
+// Overlay дээр дарвал хаагдана (гацсан үед гарах гарц).
+document.getElementById('overlay').addEventListener('click', () => {
+  document.getElementById('overlay').hidden = true;
+  clearTimeout(overlaySafety);
+});
+
+// fetch-д хугацааны хязгаар (мөнхийн гацалтаас сэргийлнэ)
+async function fetchTimeout(url, opts = {}, ms = 35000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+let statusTimer;
+function setStatus(msg, kind = '') {
+  const el = $('status');
+  el.textContent = msg;
+  el.className = 'status ' + kind;
+  clearTimeout(statusTimer);
+  if (msg) statusTimer = setTimeout(() => (el.textContent = ''), 5000);
+}
+
+// ---------- Provider badge ----------
+fetch('/api/config')
+  .then((r) => r.json())
+  .then((c) => {
+    const label = { claude: 'Claude', deepl: 'DeepL', google: 'Google', demo: 'DEMO горим' }[c.provider] || c.provider;
+    $('provider').textContent = '🌐 ' + label;
+  })
+  .catch(() => ($('provider').textContent = '🌐 ?'));
+
+// ---------- Placeholder цэвэрлэх ----------
+function clearPlaceholder(ed) {
+  const ph = ed.querySelector('.placeholder');
+  if (ph && ed.textContent.trim() === ph.textContent.trim()) ed.innerHTML = '';
+}
+Object.values(editors).forEach((ed) => {
+  ed.addEventListener('focus', () => clearPlaceholder(ed));
+});
+
+// ---------- Файл оруулах ----------
+$('fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  busy(true, 'Файл уншиж байна…');
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetchTimeout('/api/import', { method: 'POST', body: fd }, 60000);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Import алдаа');
+    editors.src.innerHTML = data.html || '<p></p>';
+    showWarnings(data.warnings);
+    saveDraft();
+    setStatus(`"${data.name}" ороллоо.`, 'ok');
+  } catch (err) {
+    setStatus(err.message, 'err');
+  } finally {
+    busy(false);
+    e.target.value = '';
+  }
+});
+
+function showWarnings(warnings) {
+  const box = $('warnings');
+  if (!warnings || !warnings.length) {
+    box.hidden = true;
+    return;
+  }
+  box.hidden = false;
+  box.innerHTML = '⚠ Анхаарах:<ul>' + warnings.map((w) => `<li>${w}</li>`).join('') + '</ul>';
+}
+
+// ---------- Rich text toolbar ----------
+$('toolbar').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const cmd = btn.dataset.cmd;
+  const block = btn.dataset.block;
+  if (cmd) document.execCommand(cmd, false, null);
+  if (block) document.execCommand('formatBlock', false, block);
+});
+
+// Зураг оруулах
+$('imgInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    editors.src.focus();
+    document.execCommand('insertHTML', false, `<img src="${reader.result}" style="max-width:100%"/>`);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+// Зураг чирж оруулах (drag & drop)
+editors.src.addEventListener('drop', (e) => {
+  const file = [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith('image/'));
+  if (!file) return;
+  e.preventDefault();
+  const reader = new FileReader();
+  reader.onload = () =>
+    document.execCommand('insertHTML', false, `<img src="${reader.result}" style="max-width:100%"/>`);
+  reader.readAsDataURL(file);
+});
+
+// ---------- Орчуулга ----------
+async function translate(target) {
+  clearPlaceholder(editors.src);
+  const html = editors.src.innerHTML.trim();
+  if (!html) {
+    setStatus('Эх хувь хоосон байна.', 'err');
+    return;
+  }
+  busy(true, (target === 'ja' ? '日本語' : 'English') + ' руу орчуулж байна…');
+  try {
+    const res = await fetchTimeout('/api/translate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ html, target }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Орчуулгын алдаа');
+    editors[target].innerHTML = data.html;
+    saveDraft();
+    setStatus('Орчуулга бэлэн.', 'ok');
+  } catch (err) {
+    setStatus(
+      err.name === 'AbortError' ? 'Орчуулга удаж хугацаа хэтэрлээ. Дахин оролдоно уу.' : err.message,
+      'err'
+    );
+  } finally {
+    busy(false);
+  }
+}
+$('translateJa').addEventListener('click', () => translate('ja'));
+$('translateEn').addEventListener('click', () => translate('en'));
+$('translateBoth').addEventListener('click', async () => {
+  await translate('ja');
+  await translate('en');
+});
+
+// ---------- Албан бичгийн толгой оруулах ----------
+$('insertHead').addEventListener('click', () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const tpl = `
+    <table style="width:100%;border:0;margin-bottom:8px">
+      <tr>
+        <td style="border:0;text-align:left;vertical-align:top">
+          <strong>[БАЙГУУЛЛАГЫН НЭР]</strong><br/>
+          <small>[Хаяг · Утас · И-мэйл]</small>
+        </td>
+        <td style="border:0;text-align:right;vertical-align:top">
+          Огноо: ${today}<br/>
+          Дугаар: №______
+        </td>
+      </tr>
+    </table>
+    <hr/>
+    <h1 style="text-align:center">[БИЧИГ БАРИМТЫН ГАРЧИГ]</h1>
+    <p>Хүлээн авагч: ____________________</p>
+    <p>&nbsp;</p>
+    <p>[Үндсэн агуулга энд...]</p>
+    <p>&nbsp;</p>
+    <p style="text-align:right">Хүндэтгэсэн,<br/>____________________<br/>[Албан тушаал · Нэр]</p>
+  `;
+  editors.src.focus();
+  clearPlaceholder(editors.src);
+  document.execCommand('insertHTML', false, tpl);
+  saveDraft();
+});
+
+// ---------- Эх хувийг цэвэрлэх ----------
+$('clearAll').addEventListener('click', () => {
+  if (!confirm('Эх хувийг цэвэрлэх үү? (буцаах боломжгүй)')) return;
+  editors.src.innerHTML = '<p></p>';
+  editors.ja.innerHTML = '';
+  editors.en.innerHTML = '';
+  saveDraft();
+  setStatus('Цэвэрлэлээ.', 'ok');
+});
+
+// ---------- Багана харуулах/нуух ----------
+function bindToggle(cbId, col) {
+  const cb = $(cbId);
+  const section = document.querySelector(`.col[data-col="${col}"]`);
+  cb.addEventListener('change', () => (section.hidden = !cb.checked));
+}
+bindToggle('showSrc', 'src');
+bindToggle('showJa', 'ja');
+bindToggle('showEn', 'en');
+
+// ---------- Хуулах ----------
+document.querySelectorAll('[data-copy]').forEach((b) => {
+  b.addEventListener('click', async () => {
+    const ed = $(b.dataset.copy);
+    try {
+      await navigator.clipboard.writeText(ed.innerText);
+      setStatus('Хууллаа.', 'ok');
+    } catch {
+      setStatus('Хуулж чадсангүй.', 'err');
+    }
+  });
+});
+
+// ---------- Export: Word ----------
+$('exportDocx').addEventListener('click', async () => {
+  const lang = $('exportLang').value;
+  const html = editors[lang].innerHTML;
+  busy(true, 'Word бэлдэж байна…');
+  try {
+    const res = await fetchTimeout('/api/export/docx', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ html, title: 'Баримт' }),
+    }, 60000);
+    if (!res.ok) throw new Error((await res.json()).error || 'Export алдаа');
+    const blob = await res.blob();
+    downloadBlob(blob, `document-${lang}.docx`);
+    setStatus('Word татагдлаа.', 'ok');
+  } catch (err) {
+    setStatus(err.message, 'err');
+  } finally {
+    busy(false);
+  }
+});
+
+// ---------- Export: PDF (LaTeX / албан бичгийн стандарт) ----------
+$('exportPdf').addEventListener('click', async () => {
+  const lang = $('exportLang').value;
+  const html = editors[lang].innerHTML;
+  if (!html || !html.replace(/<[^>]+>/g, '').trim()) {
+    setStatus('Татах агуулга хоосон байна.', 'err');
+    return;
+  }
+  busy(true, 'Албан бичгийн стандарт PDF үүсгэж байна…');
+  try {
+    const res = await fetchTimeout(
+      '/api/export/pdf',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ html, lang }),
+      },
+      120000
+    );
+    if (!res.ok) throw new Error((await res.json()).error || 'PDF алдаа');
+    const blob = await res.blob();
+    downloadBlob(blob, `document-${lang}.pdf`);
+    setStatus('PDF татагдлаа.', 'ok');
+  } catch (err) {
+    setStatus(err.name === 'AbortError' ? 'PDF үүсгэх хугацаа хэтэрлээ.' : err.message, 'err');
+  } finally {
+    busy(false);
+  }
+});
+
+// ---------- Автомат хадгалалт (localStorage) ----------
+const DRAFT_KEY = 'barimt-draft-v1';
+let saveTimer;
+function saveDraft() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({
+          src: editors.src.innerHTML,
+          ja: editors.ja.innerHTML,
+          en: editors.en.innerHTML,
+          t: Date.now(),
+        })
+      );
+    } catch {
+      /* localStorage дүүрсэн байж магадгүй (том зурагтай) */
+    }
+  }, 600);
+}
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.src && d.src.replace(/<[^>]+>/g, '').trim()) {
+      editors.src.innerHTML = d.src;
+      editors.ja.innerHTML = d.ja || '';
+      editors.en.innerHTML = d.en || '';
+      const when = new Date(d.t).toLocaleString();
+      setStatus(`Өмнөх draft сэргээгдлээ (${when}).`, 'ok');
+    }
+  } catch {
+    /* алдаатай хадгаламж — алгасна */
+  }
+}
+Object.values(editors).forEach((ed) =>
+  ed.addEventListener('input', saveDraft)
+);
+restoreDraft();
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
