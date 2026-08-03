@@ -62,21 +62,46 @@ Object.values(editors).forEach((ed) => {
   ed.addEventListener('focus', () => clearPlaceholder(ed));
 });
 
+// Word-ийг браузерт эх хэвээр (хүснэгт/зураг/формат) рэндэрлэх — docx-preview
+async function importDocxClient(file) {
+  const buf = await file.arrayBuffer();
+  const tmp = document.createElement('div');
+  await window.docx.renderAsync(buf, tmp, tmp, {
+    inWrapper: false,
+    ignoreWidth: false,
+    ignoreHeight: true,
+    breakPages: false,
+    renderHeaders: true,
+    renderFooters: true,
+  });
+  editors.src.innerHTML = tmp.innerHTML;
+}
+
 // ---------- Файл оруулах ----------
 $('fileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  const isDocx = /\.docx$/i.test(file.name);
   busy(true, 'Файл уншиж байна…');
   try {
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetchTimeout('/api/import', { method: 'POST', body: fd }, 60000);
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Import алдаа');
-    editors.src.innerHTML = sanitizeImported(data.html || '<p></p>');
-    showWarnings(data.warnings);
-    saveDraft();
-    setStatus(`"${data.name}" ороллоо.`, 'ok');
+    if (isDocx && window.docx) {
+      // Word: браузерт эх хэвээр нь (хүснэгт, зураг, формат хадгална)
+      await importDocxClient(file);
+      showWarnings([]);
+      saveDraft();
+      setStatus(`"${file.name}" эх хэвээрээ ороллоо.`, 'ok');
+    } else {
+      // Excel/PDF/зураг: серверээр
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetchTimeout('/api/import', { method: 'POST', body: fd }, 60000);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Import алдаа');
+      editors.src.innerHTML = sanitizeImported(data.html || '<p></p>');
+      showWarnings(data.warnings);
+      saveDraft();
+      setStatus(`"${data.name}" ороллоо.`, 'ok');
+    }
   } catch (err) {
     setStatus(err.message, 'err');
   } finally {
