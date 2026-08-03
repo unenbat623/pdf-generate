@@ -81,6 +81,38 @@
 .doc-cover h1 { font-size: 30pt; color: #2c4a5e; margin: 10px 0; font-weight: 800; }
 .doc-cover .meta { color: #556; margin-top: 10px; }
 
+/* ---------- Дугаартай хэсгийн толгой (1, 2, 3...) ---------- */
+.doc-numsec {
+  display: flex; align-items: center; gap: 10px; background: #e6eef3;
+  border-left: 4px solid #2c4a5e; padding: 8px 12px; margin: 20px 0 10px;
+}
+.doc-numsec .num {
+  background: #2c4a5e; color: #fff; min-width: 26px; height: 26px; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12pt;
+}
+.doc-numsec .ttl { font-weight: 700; color: #2c4a5e; font-size: 13pt; }
+
+/* ---------- Асуудлын мөр (Хэлэлцэх асуудал N) ---------- */
+.doc-issuebar {
+  border-left: 5px solid #b03a2e; background: #fbeeec; padding: 8px 12px;
+  font-weight: 700; color: #b03a2e; margin: 18px 0 8px; font-size: 12pt;
+}
+.doc-issuebar.orange { border-color: #c07a2e; background: #fbf2e8; color: #a35418; }
+.doc-issuebar.blue { border-color: #2c4a5e; background: #eef3f7; color: #2c4a5e; }
+
+/* ---------- Асуудлын дэлгэрэнгүй хүснэгт (өнгөт шошготой) ---------- */
+.doc-infotable.t-red td.label { background: #f3d9d5; color: #922b21; }
+.doc-infotable.t-orange td.label { background: #f7e6d4; color: #a35418; }
+.doc-infotable.t-blue td.label { background: #d9e5f0; color: #2c4a5e; }
+.doc-infotable td ul { margin: 0; padding-left: 18px; }
+.doc-infotable td ol { margin: 0; padding-left: 20px; }
+
+/* ---------- Тоон/санхүүгийн хүснэгт ---------- */
+.doc-datatable { border: 1px solid #b8c4d0; margin: 8px 0; font-size: 10.5pt; }
+.doc-datatable th { background: #d7e3ef; color: #2c4a5e; padding: 6px 10px; border: 1px solid #b8c4d0; text-align: left; }
+.doc-datatable td { padding: 6px 10px; border: 1px solid #cdd8e0; }
+.doc-datatable tr.total td { font-weight: 700; background: #eef3f7; }
+
 /* Хэвлэхэд картуудыг таслахгүй */
 @media print {
   .doc-cards, .doc-flow, .doc-legend { break-inside: avoid; }

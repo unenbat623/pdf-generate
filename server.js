@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Идэвхтэй орчуулгын провайдер
 app.get('/api/config', (_req, res) => {
-  res.json({ provider: activeProvider(), version: 'nura-tpl-5' });
+  res.json({ provider: activeProvider(), version: 'nura-full-6' });
 });
 
 // Файл оруулах -> HTML
