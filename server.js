@@ -8,6 +8,7 @@ import { parseFile } from './lib/parse.js';
 import { translateHtml, activeProvider } from './lib/translate.js';
 import { htmlToDocx } from './lib/export.js';
 import { htmlToPdf } from './lib/pdf.js';
+import { reconstructHtml, reconstructProvider } from './lib/reconstruct.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -18,7 +19,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Идэвхтэй орчуулгын провайдер
 app.get('/api/config', (_req, res) => {
-  res.json({ provider: activeProvider(), version: 'nura-full-6' });
+  res.json({ provider: activeProvider(), version: 'ai-reconstruct-7', aiDesign: reconstructProvider() || null });
+});
+
+// AI-аар дизайн сэргээх (текст -> дизайнтай HTML)
+app.post('/api/reconstruct', async (req, res) => {
+  try {
+    const { text } = req.body || {};
+    if (!text) return res.status(400).json({ error: 'text алга.' });
+    const html = await reconstructHtml(text);
+    res.json({ html });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Файл оруулах -> HTML

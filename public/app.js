@@ -50,8 +50,39 @@ fetch('/api/config')
   .then((c) => {
     const label = { claude: 'Claude', deepl: 'DeepL', google: 'Google', demo: 'DEMO горим' }[c.provider] || c.provider;
     $('provider').textContent = '🌐 ' + label;
+    if (c.aiDesign) $('aiDesign').hidden = false; // AI дизайн идэвхтэй бол товч харуулна
   })
   .catch(() => ($('provider').textContent = '🌐 ?'));
+
+// ---------- AI-аар дизайн сэргээх ----------
+$('aiDesign').addEventListener('click', async () => {
+  clearPlaceholder(editors.src);
+  const text = editors.src.innerText.trim();
+  if (!text) {
+    setStatus('Эх хувь хоосон байна.', 'err');
+    return;
+  }
+  if (!confirm('Эх хувийн текстийг AI-аар дизайнтай болгох уу? Одоогийн агуулга солигдоно.')) return;
+  busy(true, '🤖 AI дизайн сэргээж байна… (30 сек хүртэл)');
+  try {
+    const res = await fetchTimeout('/api/reconstruct', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text }),
+    }, 120000);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'AI дизайн алдаа');
+    editors.src.innerHTML = data.html;
+    editors.ja.innerHTML = '';
+    editors.en.innerHTML = '';
+    saveDraft();
+    setStatus('AI дизайн бэлэн. Шалгаад засаарай.', 'ok');
+  } catch (err) {
+    setStatus(err.name === 'AbortError' ? 'AI удаж хугацаа хэтэрлээ.' : err.message, 'err');
+  } finally {
+    busy(false);
+  }
+});
 
 // ---------- Placeholder цэвэрлэх ----------
 function clearPlaceholder(ed) {
