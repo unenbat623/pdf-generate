@@ -2,8 +2,78 @@
 // Хэрэглэгч эдгээрийг засварлагчид оруулж, шууд засаад орчуулж, PDF/Word болгоно.
 window.TEMPLATES = [
   {
+    id: 'nura-ff-meeting',
+    name: 'Nura-FF уулзалтын материал',
+    emoji: '⭐',
+    desc: 'TP_Nura-FF Business Meeting — таны баримт бүрэн агуулгатайгаар. Засаад орчуулж, PDF/Word гарга.',
+    html: `
+<div class="doc-runhead"><span>Таван Богд Нура ХХК</span><span class="r">Стратегийн бизнес уулзалт</span></div>
+<div class="doc-title">
+  <h1>Стратегийн бизнес уулзалтын материал</h1>
+  <div class="sub">Таван Богд Нура ХХК – Фүжифилм ДКЭйч ХХТ</div>
+</div>
+
+<div class="doc-section-title">Уулзалтын хамрах хүрээ</div>
+<table class="doc-infotable">
+  <tr><td class="label">Зорилго</td><td>Монгол Улс дахь Нура эрт илрүүлгийн төв, бизнесийн өнөөгийн нөхцөл байдлыг хамтран үнэлэх, цаашдын хөгжлийн чиглэлийг тодорхойлох, хоёр талын стратегийн түншлэлийг бэхжүүлэх зорилгоор хоёр талын гэрээний тодорхой нөхцөлүүдийг харилцан ашигтай байдлаар сайжруулах боломжийг хэлэлцэхэд оршино.</td></tr>
+  <tr><td class="label">Талууд</td><td>Таван Богд Нура ХХК – Фүжифилм ДКЭйч ХХТ</td></tr>
+  <tr><td class="label">Огноо</td><td>2026.07.07 (Мягмар гариг), 09:00 цагт, Кемпински зочид буудал Хаан Палас Улаанбаатар</td></tr>
+  <tr><td class="label">Оролцогчид</td><td>
+    <table style="width:100%;border:0"><tr style="border:0">
+      <td style="border:0;vertical-align:top;width:50%">
+        <b>Таван Богд Групп, Таван Богд Нура ХХК:</b>
+        <ol>
+          <li>Ц.Баатарсайхан – Таван Богд Группын Ерөнхийлөгч, Гүйцэтгэх захирал</li>
+          <li>Б.Оргил, Санхүү удирдлага хариуцсан захирал</li>
+          <li>Б.Өрнөхжаргал, Таван Богд Нура ХХК-ийн гүйцэтгэх захирал</li>
+          <li>Б.Золбоо, Эмнэлзүйн албаны дарга</li>
+          <li>А.Амартүвшин, Програм хангамж, хөгжүүлэлтийн албаны дарга</li>
+          <li>Г.Азхүү, Борлуулалтын менежер</li>
+          <li>Б.Баттуяа, Захирлын туслах</li>
+        </ol>
+      </td>
+      <td style="border:0;vertical-align:top;width:50%">
+        <b>Fujifilm DKH LLP:</b>
+        <ol>
+          <li>Масахару Морита — NURA-ийн үүсгэн байгуулагч, хөтөлбөрийн захирал</li>
+          <li>Жүн Хигүчи — Эмнэлгийн системийн бизнесийн газрын ерөнхий менежер</li>
+          <li>Нобуо Мацуноүбэ — Эмнэлгийн системийн бизнесийн газрын ерөнхий менежер</li>
+          <li>Юкико Такабаяши — Харилцааны ахлах менежер</li>
+          <li>Томоми Учида – Франчайзийн дансны менежер, Модальт шийдлийн хэлтэс</li>
+        </ol>
+      </td>
+    </tr></table>
+  </td></tr>
+</table>
+
+<div class="doc-legend">
+  <div class="chip red">Нэн чухал / Заавал шийдвэрлэх</div>
+  <div class="chip orange">Өндөр ач холбогдол</div>
+  <div class="chip blue">Дунд / Үйл ажиллагааны</div>
+</div>
+
+<div class="doc-section-title">Хэлэлцэх асуудлын тойм</div>
+<div class="doc-cards">
+  <div class="card red"><div class="n">1. Нэн чухал</div><div class="t">Лицензийн хураамж</div><div class="bar"></div></div>
+  <div class="card red"><div class="n">2. Нэн чухал</div><div class="t">Програм хангамж / систем</div><div class="bar"></div></div>
+  <div class="card red"><div class="n">3. Нэн чухал</div><div class="t">Бүтээгдэхүүн, борлуулалт</div><div class="bar"></div></div>
+  <div class="card orange"><div class="n">4. Өндөр</div><div class="t">Тоног төхөөрөмж</div><div class="bar"></div></div>
+  <div class="card blue"><div class="n">5. Дунд</div><div class="t">Бусад өөрчлөлт</div><div class="bar"></div></div>
+</div>
+
+<div class="doc-section-title">Уулзалтын урсгал</div>
+<div class="doc-flow">
+  <div class="step">Нээлт, хамтын зорилго</div><span class="arrow">→</span>
+  <div class="step">Бизнесийн нөхцөл байдал</div><span class="arrow">→</span>
+  <div class="step">5 хэлэлцэх асуудал</div><span class="arrow">→</span>
+  <div class="step">Өөрчлөлтийн санал</div><span class="arrow">→</span>
+  <div class="step">Дараагийн алхам</div>
+</div>`,
+  },
+
+  {
     id: 'meeting-brief',
-    name: 'Уулзалтын материал',
+    name: 'Уулзалтын материал (хоосон)',
     emoji: '📋',
     desc: 'Стратегийн бизнес уулзалтын дизайнтай товч (өнгөт хүснэгт, картууд, урсгал).',
     html: `
