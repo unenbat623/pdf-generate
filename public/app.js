@@ -85,17 +85,19 @@ $('fileInput').addEventListener('change', async (e) => {
   }
 });
 
-// Импортын HTML-ээс асуудалтай фонтыг цэвэрлэнэ (ү/ө → □ болохоос сэргийлнэ)
+// Импортын HTML-ийн фонтыг ХАДГАЛЖ (fidelity), ард нь fallback нэмнэ (ү/ө □ болохоос сэргийлнэ)
+const FONT_FALLBACK = `"Noto Sans", "Noto Sans CJK JP", "Hiragino Sans", Arial, sans-serif`;
 function sanitizeImported(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
-  // <font face> -> устгах (агуулгыг үлдээж)
-  tmp.querySelectorAll('font').forEach((f) => f.removeAttribute('face'));
-  // style доторх font-family-г арилгах
   tmp.querySelectorAll('[style]').forEach((el) => {
-    const s = el.getAttribute('style').replace(/font-family\s*:[^;]+;?/gi, '').trim();
-    if (s) el.setAttribute('style', s);
-    else el.removeAttribute('style');
+    const style = el.getAttribute('style');
+    if (/font-family\s*:/i.test(style) && !/Noto Sans/i.test(style)) {
+      el.setAttribute(
+        'style',
+        style.replace(/font-family\s*:\s*([^;]+)/i, (m, fams) => `font-family: ${fams.trim()}, ${FONT_FALLBACK}`)
+      );
+    }
   });
   return tmp.innerHTML;
 }

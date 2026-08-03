@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Идэвхтэй орчуулгын провайдер
 app.get('/api/config', (_req, res) => {
-  res.json({ provider: activeProvider() });
+  res.json({ provider: activeProvider(), version: 'libreoffice-import-1' });
 });
 
 // Файл оруулах -> HTML
