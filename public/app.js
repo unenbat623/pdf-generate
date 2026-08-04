@@ -5,6 +5,16 @@ const editors = {
   en: $('editorEn'),
 };
 
+function escapeHtml(text = '') {
+  return String(text).replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[ch]);
+}
+
 // ---------- Overlay / status ----------
 let overlaySafety;
 function busy(on, text = 'Ажиллаж байна…') {
@@ -165,7 +175,7 @@ function showWarnings(warnings) {
     return;
   }
   box.hidden = false;
-  box.innerHTML = '⚠ Анхаарах:<ul>' + warnings.map((w) => `<li>${w}</li>`).join('') + '</ul>';
+  box.innerHTML = '⚠ Анхаарах:<ul>' + warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('') + '</ul>';
 }
 
 // ---------- Rich text toolbar ----------
@@ -326,7 +336,7 @@ $('exportDocx').addEventListener('click', async () => {
     const res = await fetchTimeout('/api/export/docx', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ html, title: 'Баримт' }),
+      body: JSON.stringify({ html, title: 'Баримт', lang }),
     }, 60000);
     if (!res.ok) throw new Error((await res.json()).error || 'Export алдаа');
     const blob = await res.blob();

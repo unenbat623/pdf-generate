@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check lib/parse.js && node --check lib/translate.js && node --check lib/reconstruct.js && node --check lib/pdf.js && node --check lib/export.js && node --check lib/sanitize.js"
   },
   "dependencies": {
     "docx-preview": "^0.3.7",

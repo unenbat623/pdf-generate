@@ -125,6 +125,23 @@ body {
 .editor hr.page-break { border: 0; border-top: 2px dashed #d0d6e0; margin: 18px 0; }
 .editor figure { margin: 10px 0; }
 .editor figcaption { color: var(--muted); font-size: 12px; }
+.editor .pdf-page.exact {
+  background: #fff;
+  border: 1px solid #d9dee7;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+  margin: 0 auto 18px;
+  max-width: 100%;
+  transform-origin: top left;
+}
+.editor .pdf-text {
+  display: block;
+  min-height: 1em;
+  outline: 1px solid transparent;
+}
+.editor .pdf-text:focus {
+  background: rgba(255, 246, 196, 0.55);
+  outline-color: rgba(47, 111, 237, 0.35);
+}
 
 /* Bottom bar */
 .bottombar {
