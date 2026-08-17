@@ -37,7 +37,7 @@ function downloadName(prefix, lang, ext) {
 app.get('/api/config', (_req, res) => {
   res.json({
     provider: activeProvider(),
-    version: 'universal-import-1',
+    version: 'ocr-image-2',
     aiDesign: reconstructProvider() || null,
     formats: SUPPORTED_EXTENSIONS,
   });
