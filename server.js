@@ -4,7 +4,7 @@ import multer from 'multer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { parseFile } from './lib/parse.js';
+import { parseFile, SUPPORTED_EXTENSIONS } from './lib/parse.js';
 import { translateHtml, activeProvider } from './lib/translate.js';
 import { htmlToDocx } from './lib/export.js';
 import { closeBrowser, htmlToPdf } from './lib/pdf.js';
@@ -13,11 +13,10 @@ import { sanitizeHtml } from './lib/sanitize.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 40 * 1024 * 1024 } });
-const ALLOWED_IMPORT_EXTS = new Set(['docx', 'xlsx', 'xls', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp']);
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 80 * 1024 * 1024 } });
 const ALLOWED_LANGS = new Set(['src', 'ja', 'en']);
 
-app.use(express.json({ limit: '60mb' }));
+app.use(express.json({ limit: '120mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 function cleanError(error) {
@@ -36,7 +35,12 @@ function downloadName(prefix, lang, ext) {
 
 // Идэвхтэй орчуулгын провайдер
 app.get('/api/config', (_req, res) => {
-  res.json({ provider: activeProvider(), version: 'ai-reconstruct-7', aiDesign: reconstructProvider() || null });
+  res.json({
+    provider: activeProvider(),
+    version: 'universal-import-1',
+    aiDesign: reconstructProvider() || null,
+    formats: SUPPORTED_EXTENSIONS,
+  });
 });
 
 // AI-аар дизайн сэргээх (текст -> дизайнтай HTML)
@@ -56,11 +60,11 @@ app.post('/api/reconstruct', async (req, res) => {
 app.post('/api/import', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Файл алга.' });
-    const ext = originalExtension(req.file.originalname);
-    if (!ALLOWED_IMPORT_EXTS.has(ext)) {
-      return res.status(400).json({ error: 'Дэмжигдэхгүй файлын төрөл.' });
-    }
+    // Төрлийг өргөтгөлөөр хатуу шүүхгүй — parseFile нь агуулгаас нь таньж,
+    // танигдаагүй тохиолдолд текст болгон уншина (ямар ч файлыг оруулж болно).
+    const started = Date.now();
     const { html, warnings } = await parseFile(req.file);
+    console.log(`import: ${req.file.originalname} (${originalExtension(req.file.originalname)}) → ${html.length} тэмдэгт, ${Date.now() - started}ms`);
     res.json({ html, warnings, name: req.file.originalname });
   } catch (e) {
     console.error(e);

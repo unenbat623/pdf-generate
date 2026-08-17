@@ -5,11 +5,14 @@ FROM node:20-bookworm-slim
 #  - chromium              → Puppeteer-ийн хөдөлгүүр (apt бүх хамаарлыг авчирна)
 #  - fonts-noto-core       → Латин + Кирилл (Монгол ү/ө орно)
 #  - fonts-noto-cjk        → Япон/Хятад/Солонгос
-#  - fonts-liberation      → Times/Arial-төстэй
+#  - fonts-liberation      → Times/Arial-тай ижил хэмжээтэй (metric-compatible)
+#  - fonts-crosextra-*     → Calibri↔Carlito, Cambria↔Caladea (Excel/Word-ийн
+#                            баганын өргөн, мөрийн тоо яг таарахад чухал)
 RUN apt-get update && apt-get install -y --no-install-recommends \
       chromium \
       ca-certificates fontconfig \
       fonts-noto-core fonts-noto-cjk fonts-liberation \
+      fonts-crosextra-carlito fonts-crosextra-caladea \
  && rm -rf /var/lib/apt/lists/* \
  && fc-cache -f
 

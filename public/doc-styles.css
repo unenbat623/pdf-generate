@@ -6,6 +6,33 @@
 .doc-body img { max-width: 100%; height: auto; }
 .doc-body table { border-collapse: collapse; width: 100%; }
 
+/* ---------- Импортоос орж ирсэн бүтэц (Excel хуудас, слайд, хуудас таслалт) ---------- */
+.doc-body hr.page-break {
+  border: 0; border-top: 1px dashed #c3ccd6; height: 0; margin: 18px 0;
+  page-break-after: always; break-after: page;
+}
+.doc-body .xl-sheet-title {
+  font-size: 13pt; font-weight: 700; color: #2c4a5e; margin: 14px 0 6px;
+}
+/* Excel хуудас: багана/мөрийн хэмжээ inline style-аар ирнэ — 100% болгож дарж болохгүй */
+.doc-body table.xl-sheet { width: auto; max-width: none; }
+.doc-body table.xl-sheet td { vertical-align: bottom; }
+.doc-body .xl-pic { display: block; height: auto; }
+.doc-body .xl-shape {
+  border: 1px dashed #b9cbdd; background: #f6f9fc; border-radius: 6px;
+  padding: 4px 6px; font-size: 10pt; margin: 3px 0;
+}
+/* Өргөн хүснэгт засварлагч дотор гүйлгэгддэг байх (PDF-д бүтнээрээ гарна) */
+.editor { overflow-x: auto; }
+
+.doc-body .pptx-slide {
+  border: 1px solid #dde4ea; border-radius: 10px; padding: 14px 16px; margin: 12px 0;
+  background: #fff; break-inside: avoid;
+}
+.doc-body .pptx-slide-no { font-size: 9pt; color: #8397a8; letter-spacing: 1px; text-transform: uppercase; }
+.doc-body .pptx-title { font-size: 15pt; color: #2c4a5e; margin: 4px 0 8px; }
+.doc-body .pptx-notes { margin-top: 8px; font-size: 10pt; color: #5a6b7a; border-top: 1px dotted #cfd8e0; padding-top: 6px; }
+
 /* ---------- Ерөнхий хуудасны толгой (running header) ---------- */
 .doc-runhead {
   display: flex; justify-content: space-between; align-items: center;

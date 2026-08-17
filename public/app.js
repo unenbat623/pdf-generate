@@ -17,16 +17,16 @@ function escapeHtml(text = '') {
 
 // ---------- Overlay / status ----------
 let overlaySafety;
-function busy(on, text = 'Ажиллаж байна…') {
+function busy(on, text = 'Ажиллаж байна…', safetyMs = 60000) {
   $('overlayText').textContent = text;
   $('overlay').hidden = !on;
   clearTimeout(overlaySafety);
-  // Аюулгүйн хамгаалалт: 40 секундээс хойш ямар ч тохиолдолд overlay-г хаана.
+  // Аюулгүйн хамгаалалт: хугацаа хэтэрвэл ямар ч тохиолдолд overlay-г хаана.
   if (on) {
     overlaySafety = setTimeout(() => {
       $('overlay').hidden = true;
       setStatus('Хүсэлт удаж байгаа тул зогсоолоо. Дахин оролдоно уу.', 'err');
-    }, 40000);
+    }, safetyMs);
   }
 }
 // Overlay дээр дарвал хаагдана (гацсан үед гарах гарц).
@@ -73,7 +73,7 @@ $('aiDesign').addEventListener('click', async () => {
     return;
   }
   if (!confirm('Эх хувийн текстийг AI-аар дизайнтай болгох уу? Одоогийн агуулга солигдоно.')) return;
-  busy(true, '🤖 AI дизайн сэргээж байна… (30 сек хүртэл)');
+  busy(true, '🤖 AI дизайн сэргээж байна… (30 сек хүртэл)', 130000);
   try {
     const res = await fetchTimeout('/api/reconstruct', {
       method: 'POST',
@@ -119,11 +119,9 @@ async function importDocxClient(file) {
 }
 
 // ---------- Файл оруулах ----------
-$('fileInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+async function importFile(file) {
   const isDocx = /\.docx$/i.test(file.name);
-  busy(true, 'Файл уншиж байна…');
+  busy(true, `"${file.name}" уншиж байна…`, 180000);
   try {
     if (isDocx && window.docx) {
       // Word: браузерт эх хэвээр нь (хүснэгт, зураг, формат хадгална)
@@ -131,28 +129,35 @@ $('fileInput').addEventListener('change', async (e) => {
       showWarnings([]);
       saveDraft();
       setStatus(`"${file.name}" эх хэвээрээ ороллоо.`, 'ok');
-    } else {
-      // Excel/PDF/зураг: серверээр
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetchTimeout('/api/import', { method: 'POST', body: fd }, 60000);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Import алдаа');
-      editors.src.innerHTML = sanitizeImported(data.html || '<p></p>');
-      showWarnings(data.warnings);
-      saveDraft();
-      setStatus(`"${data.name}" ороллоо.`, 'ok');
+      return;
     }
+    // Бусад бүх төрөл: серверт задлан уншина
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetchTimeout('/api/import', { method: 'POST', body: fd }, 180000);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Import алдаа');
+    editors.src.innerHTML = sanitizeImported(data.html || '<p></p>');
+    editors.ja.innerHTML = '';
+    editors.en.innerHTML = '';
+    showWarnings(data.warnings);
+    saveDraft();
+    setStatus(`"${data.name}" ороллоо.`, 'ok');
   } catch (err) {
-    setStatus(err.message, 'err');
+    setStatus(err.name === 'AbortError' ? 'Файл уншихад хугацаа хэтэрлээ.' : err.message, 'err');
   } finally {
     busy(false);
-    e.target.value = '';
   }
+}
+
+$('fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (file) await importFile(file);
+  e.target.value = '';
 });
 
 // Импортын HTML-ийн фонтыг ХАДГАЛЖ (fidelity), ард нь fallback нэмнэ (ү/ө □ болохоос сэргийлнэ)
-const FONT_FALLBACK = `"Noto Sans", "Noto Sans CJK JP", "Hiragino Sans", Arial, sans-serif`;
+const FONT_FALLBACK = `"Carlito", "Liberation Sans", "Noto Sans", "Noto Sans CJK JP", "Hiragino Sans", Arial, sans-serif`;
 function sanitizeImported(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
@@ -201,7 +206,7 @@ $('imgInput').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-// Зураг чирж оруулах (drag & drop)
+// Зураг чирж оруулах (drag & drop) — зураг бол шууд шигтгэнэ
 editors.src.addEventListener('drop', (e) => {
   const file = [...(e.dataTransfer?.files || [])].find((f) => f.type.startsWith('image/'));
   if (!file) return;
@@ -212,6 +217,19 @@ editors.src.addEventListener('drop', (e) => {
   reader.readAsDataURL(file);
 });
 
+// Баримтын файлыг цонх руу чирвэл бүтнээр нь импортлоно
+window.addEventListener('dragover', (e) => {
+  if (e.dataTransfer?.types?.includes('Files')) e.preventDefault();
+});
+window.addEventListener('drop', async (e) => {
+  const file = [...(e.dataTransfer?.files || [])][0];
+  if (!file || file.type.startsWith('image/')) return; // зургийг дээрх зохицуулагч авна
+  e.preventDefault();
+  const current = editors.src.innerHTML.replace(/<[^>]+>/g, '').trim();
+  if (current && !editors.src.querySelector('.placeholder') && !confirm(`"${file.name}"-ийг оруулах уу? Эх хувь дээрх агуулга солигдоно.`)) return;
+  await importFile(file);
+});
+
 // ---------- Орчуулга ----------
 async function translate(target) {
   clearPlaceholder(editors.src);
@@ -220,13 +238,13 @@ async function translate(target) {
     setStatus('Эх хувь хоосон байна.', 'err');
     return false;
   }
-  busy(true, (target === 'ja' ? '日本語' : 'English') + ' руу орчуулж байна…');
+  busy(true, (target === 'ja' ? '日本語' : 'English') + ' руу орчуулж байна… (том баримт удаж болно)', 300000);
   try {
     const res = await fetchTimeout('/api/translate', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ html, target }),
-    });
+    }, 300000);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Орчуулгын алдаа');
     editors[target].innerHTML = data.html;
@@ -331,7 +349,7 @@ $('clearAll').addEventListener('click', () => {
 $('exportDocx').addEventListener('click', async () => {
   const lang = $('exportLang').value;
   const html = editors[lang].innerHTML;
-  busy(true, 'Word бэлдэж байна…');
+  busy(true, 'Word бэлдэж байна…', 120000);
   try {
     const res = await fetchTimeout('/api/export/docx', {
       method: 'POST',
@@ -357,7 +375,7 @@ $('exportPdf').addEventListener('click', async () => {
     setStatus('Татах агуулга хоосон байна.', 'err');
     return;
   }
-  busy(true, 'Албан бичгийн стандарт PDF үүсгэж байна…');
+  busy(true, 'PDF үүсгэж байна… (зурагтай том баримт удаж болно)', 240000);
   try {
     const res = await fetchTimeout(
       '/api/export/pdf',
@@ -366,7 +384,7 @@ $('exportPdf').addEventListener('click', async () => {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ html, lang }),
       },
-      120000
+      240000
     );
     if (!res.ok) throw new Error((await res.json()).error || 'PDF алдаа');
     const blob = await res.blob();
@@ -381,22 +399,31 @@ $('exportPdf').addEventListener('click', async () => {
 
 // ---------- Автомат хадгалалт (localStorage) ----------
 const DRAFT_KEY = 'barimt-draft-v1';
+const DRAFT_LIMIT = 3_500_000; // localStorage ойролцоогоор 5MB — зурагтай баримт багтахгүй
 let saveTimer;
+let draftWarned = false;
 function saveDraft() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    const payload = JSON.stringify({
+      src: editors.src.innerHTML,
+      ja: editors.ja.innerHTML,
+      en: editors.en.innerHTML,
+      t: Date.now(),
+    });
+    if (payload.length > DRAFT_LIMIT) {
+      // Зурагтай том баримт — хадгалахыг оролдох нь хөтчийг л удаашруулна
+      localStorage.removeItem(DRAFT_KEY);
+      if (!draftWarned) {
+        draftWarned = true;
+        setStatus('Баримт том тул автомат хадгалалт унтарлаа — ажлаа PDF/Word болгож татаж аваарай.', 'err');
+      }
+      return;
+    }
     try {
-      localStorage.setItem(
-        DRAFT_KEY,
-        JSON.stringify({
-          src: editors.src.innerHTML,
-          ja: editors.ja.innerHTML,
-          en: editors.en.innerHTML,
-          t: Date.now(),
-        })
-      );
+      localStorage.setItem(DRAFT_KEY, payload);
     } catch {
-      /* localStorage дүүрсэн байж магадгүй (том зурагтай) */
+      /* localStorage дүүрсэн байж магадгүй */
     }
   }, 600);
 }

@@ -1,13 +1,13 @@
 {
   "name": "barimt-orchuulga",
   "version": "1.0.0",
-  "description": "Word/Excel/PDF draft-aas albn barimt bichig gargaj, Japon/Angli helreer orchuuldag web",
+  "description": "Word/Excel/PowerPoint/PDF/ODF/RTF/CSV зэрэг ямар ч баримтыг уншиж, засаж, Япон/Англи руу орчуулж, PDF/Word болгодог веб",
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "check": "node --check server.js && node --check lib/parse.js && node --check lib/translate.js && node --check lib/reconstruct.js && node --check lib/pdf.js && node --check lib/export.js && node --check lib/sanitize.js"
+    "check": "node --check server.js && for f in lib/*.js public/app.js; do node --check $f || exit 1; done"
   },
   "dependencies": {
     "docx-preview": "^0.3.7",
