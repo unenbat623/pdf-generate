@@ -10,6 +10,7 @@
     "check": "node --check server.js && for f in lib/*.js public/app.js; do node --check $f || exit 1; done"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.100",
     "docx-preview": "^0.3.7",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
