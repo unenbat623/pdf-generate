@@ -114,6 +114,9 @@ async function importDocxClient(file) {
     breakPages: false,
     renderHeaders: true,
     renderFooters: true,
+    // Зургийг blob: биш base64 болгоно — эс тэгвэл draft сэргээх,
+    // орчуулах, PDF/Word татахад зургууд алга болдог
+    useBase64URL: true,
   });
   editors.src.innerHTML = tmp.innerHTML;
 }

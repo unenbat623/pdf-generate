@@ -5,6 +5,9 @@
 .doc-body p { line-height: 1.55; }
 .doc-body img { max-width: 100%; height: auto; }
 .doc-body table { border-collapse: collapse; width: 100%; }
+/* Импортын энгийн хүснэгтэд үндсэн хүрээ — засварлагч дээр харагддаг хүрээ PDF-д мөн гарна.
+   :where() = 0 specificity тул doc-datatable/xl-sheet зэрэг тусгай стиль давуу хэвээр. */
+.doc-body :where(table:not(.xl-sheet)) :where(td, th) { border: 1px solid #cbd2dc; padding: 4px 8px; }
 
 /* ---------- Импортоос орж ирсэн бүтэц (Excel хуудас, слайд, хуудас таслалт) ---------- */
 .doc-body hr.page-break {
