@@ -400,6 +400,37 @@ $('exportPdf').addEventListener('click', async () => {
   }
 });
 
+// ---------- Export: Зураг (PNG / олон хуудас бол ZIP) ----------
+$('exportImg').addEventListener('click', async () => {
+  const lang = $('exportLang').value;
+  const html = editors[lang].innerHTML;
+  if (!html || !html.replace(/<[^>]+>/g, '').trim()) {
+    setStatus('Татах агуулга хоосон байна.', 'err');
+    return;
+  }
+  busy(true, 'Зураг үүсгэж байна… (олон хуудастай бол удаж болно)', 240000);
+  try {
+    const res = await fetchTimeout(
+      '/api/export/image',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ html, lang }),
+      },
+      240000
+    );
+    if (!res.ok) throw new Error((await res.json()).error || 'Зургийн алдаа');
+    const isZip = (res.headers.get('content-type') || '').includes('zip');
+    const blob = await res.blob();
+    downloadBlob(blob, isZip ? `document-images-${lang}.zip` : `document-${lang}.png`);
+    setStatus(isZip ? 'Хуудас бүрийн зургууд ZIP-ээр татагдлаа.' : 'Зураг татагдлаа.', 'ok');
+  } catch (err) {
+    setStatus(err.name === 'AbortError' ? 'Зураг үүсгэх хугацаа хэтэрлээ.' : err.message, 'err');
+  } finally {
+    busy(false);
+  }
+});
+
 // ---------- Автомат хадгалалт (localStorage) ----------
 const DRAFT_KEY = 'barimt-draft-v1';
 const DRAFT_LIMIT = 3_500_000; // localStorage ойролцоогоор 5MB — зурагтай баримт багтахгүй

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { parseFile, SUPPORTED_EXTENSIONS } from './lib/parse.js';
 import { translateHtml, activeProvider } from './lib/translate.js';
 import { htmlToDocx } from './lib/export.js';
-import { closeBrowser, htmlToPdf } from './lib/pdf.js';
+import { closeBrowser, htmlToPdf, htmlToImages } from './lib/pdf.js';
 import { reconstructHtml, reconstructProvider } from './lib/reconstruct.js';
 import { sanitizeHtml } from './lib/sanitize.js';
 
@@ -112,6 +112,30 @@ app.post('/api/export/pdf', async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'PDF үүсгэхэд алдаа гарлаа: ' + cleanError(e) });
+  }
+});
+
+// Зураг татах (PNG — 1 хуудас бол шууд зураг, олон хуудас бол ZIP)
+app.post('/api/export/image', async (req, res) => {
+  try {
+    const { html, lang } = req.body || {};
+    if (!html) return res.status(400).json({ error: 'html алга.' });
+    const images = await htmlToImages(html, { lang: lang || 'src' });
+    if (images.length === 1) {
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="${downloadName('document', lang, 'png')}"`);
+      return res.send(images[0]);
+    }
+    const { default: JSZip } = await import('jszip');
+    const zip = new JSZip();
+    images.forEach((img, i) => zip.file(`page-${String(i + 1).padStart(2, '0')}.png`, img));
+    const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'STORE' });
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadName('document-images', lang, 'zip')}"`);
+    res.send(buffer);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Зураг үүсгэхэд алдаа гарлаа: ' + cleanError(e) });
   }
 });
 
