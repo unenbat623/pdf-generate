@@ -9,6 +9,7 @@ import { translateHtml, activeProvider } from './lib/translate.js';
 import { htmlToDocx } from './lib/export.js';
 import { closeBrowser, htmlToPdf, htmlToImages } from './lib/pdf.js';
 import { reconstructHtml, reconstructProvider } from './lib/reconstruct.js';
+import { cleanApiKey } from './lib/ocr.js';
 import { sanitizeHtml } from './lib/sanitize.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -37,8 +38,17 @@ function downloadName(prefix, lang, ext) {
 app.get('/api/config', (_req, res) => {
   res.json({
     provider: activeProvider(),
-    version: 'ocr-image-2',
+    version: 'ocr-image-3',
     aiDesign: reconstructProvider() || null,
+    // Оношилгоо: түлхүүрийн эхний 6 тэмдэгт + урт (түлхүүр өөрөө задрахгүй)
+    aiKeyHint: (() => {
+      try {
+        const k = cleanApiKey(process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY, 'key');
+        return k ? `${k.slice(0, 6)}…(${k.length})` : null;
+      } catch (e) {
+        return 'алдаа: ' + e.message;
+      }
+    })(),
     formats: SUPPORTED_EXTENSIONS,
   });
 });
