@@ -135,7 +135,13 @@ app.post('/api/export/pdf', async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error(e);
-    recordError('export/pdf', e, { htmlLength: req.body?.html?.length ?? null });
+    recordError('export/pdf', e, { htmlLength: req.body?.html?.length ?? null, pdfStats: e.pdfStats || null });
+    // Унагасан HTML-ийг оношилгоонд зориулж хадгална (GET /api/debug/last-html)
+    if (req.body?.html) {
+      import('node:fs/promises')
+        .then((fs) => fs.writeFile('/tmp/last-failed.html', req.body.html))
+        .catch(() => {});
+    }
     // PDF-ийн алдааг нуувал оношлох боломжгүй тул жинхэнэ мессежийг буцаана
     res.status(500).json({ error: 'PDF үүсгэхэд алдаа гарлаа: ' + (e.message || e) });
   }
@@ -169,6 +175,18 @@ app.post('/api/export/image', async (req, res) => {
 // Сүүлийн алдаанууд (оношилгоо)
 app.get('/api/debug/errors', (_req, res) => {
   res.json({ errors: lastErrors });
+});
+
+// Сүүлд PDF болж чадаагүй HTML (оношилгоо)
+app.get('/api/debug/last-html', async (_req, res) => {
+  try {
+    const { readFile } = await import('node:fs/promises');
+    const html = await readFile('/tmp/last-failed.html', 'utf8');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.send(html);
+  } catch {
+    res.status(404).json({ error: 'Бүртгэгдсэн HTML алга.' });
+  }
 });
 
 // PDF хөдөлгүүрийн оношилгоо: Chromium ажиллаж буй эсэхийг шууд шалгана.
