@@ -24,6 +24,20 @@ function cleanError(error) {
   return process.env.NODE_ENV === 'production' ? 'Сервер дээр алдаа гарлаа.' : error.message;
 }
 
+// Сүүлийн алдаануудыг санах ойд хадгална — Railway-ийн log руу орохгүйгээр
+// GET /api/debug/errors гэж нээгээд оношлох боломж олгоно.
+const lastErrors = [];
+function recordError(route, e, extra = {}) {
+  lastErrors.unshift({
+    time: new Date().toISOString(),
+    route,
+    message: e?.message || String(e),
+    stack: (e?.stack || '').split('\n').slice(0, 4).join(' | '),
+    ...extra,
+  });
+  if (lastErrors.length > 20) lastErrors.pop();
+}
+
 function originalExtension(filename = '') {
   const ext = path.extname(filename).replace('.', '').toLowerCase();
   return ext;
@@ -121,6 +135,7 @@ app.post('/api/export/pdf', async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error(e);
+    recordError('export/pdf', e, { htmlLength: req.body?.html?.length ?? null });
     // PDF-ийн алдааг нуувал оношлох боломжгүй тул жинхэнэ мессежийг буцаана
     res.status(500).json({ error: 'PDF үүсгэхэд алдаа гарлаа: ' + (e.message || e) });
   }
@@ -146,8 +161,14 @@ app.post('/api/export/image', async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error(e);
+    recordError('export/image', e, { htmlLength: req.body?.html?.length ?? null });
     res.status(500).json({ error: 'Зураг үүсгэхэд алдаа гарлаа: ' + (e.message || e) });
   }
+});
+
+// Сүүлийн алдаанууд (оношилгоо)
+app.get('/api/debug/errors', (_req, res) => {
+  res.json({ errors: lastErrors });
 });
 
 // PDF хөдөлгүүрийн оношилгоо: Chromium ажиллаж буй эсэхийг шууд шалгана.
@@ -161,6 +182,14 @@ app.get('/api/health/pdf', async (_req, res) => {
     console.error(e);
     res.status(500).json({ ok: false, error: e.message || String(e) });
   }
+});
+
+// Глобал алдааны handler — body parser (JSON/хэмжээ) зэрэг route-оос өмнөх
+// алдааг ч бүртгэж, ойлгомжтой JSON буцаана.
+app.use((err, req, res, _next) => {
+  console.error(err);
+  recordError(req.path, err, { status: err.status || err.statusCode || 500 });
+  res.status(err.status || err.statusCode || 500).json({ error: err.message || 'Сервер дээр алдаа гарлаа.' });
 });
 
 const PORT = process.env.PORT || 3000;
