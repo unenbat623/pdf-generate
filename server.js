@@ -121,7 +121,8 @@ app.post('/api/export/pdf', async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: 'PDF үүсгэхэд алдаа гарлаа: ' + cleanError(e) });
+    // PDF-ийн алдааг нуувал оношлох боломжгүй тул жинхэнэ мессежийг буцаана
+    res.status(500).json({ error: 'PDF үүсгэхэд алдаа гарлаа: ' + (e.message || e) });
   }
 });
 
@@ -145,7 +146,20 @@ app.post('/api/export/image', async (req, res) => {
     res.send(buffer);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: 'Зураг үүсгэхэд алдаа гарлаа: ' + cleanError(e) });
+    res.status(500).json({ error: 'Зураг үүсгэхэд алдаа гарлаа: ' + (e.message || e) });
+  }
+});
+
+// PDF хөдөлгүүрийн оношилгоо: Chromium ажиллаж буй эсэхийг шууд шалгана.
+// Railway дээр GET /api/health/pdf гэж нээгээд үзэхэд хангалттай.
+app.get('/api/health/pdf', async (_req, res) => {
+  try {
+    const started = Date.now();
+    const buf = await htmlToPdf('<p>тест ok</p>', { lang: 'src' });
+    res.json({ ok: true, bytes: buf.length, ms: Date.now() - started });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: e.message || String(e) });
   }
 });
 
