@@ -19,6 +19,7 @@
     "mammoth": "^1.8.0",
     "multer": "^2.2.0",
     "node-html-parser": "^6.1.13",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.7.76",
     "puppeteer": "^23.10.4",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
