@@ -191,6 +191,17 @@ body {
 .tpl-card .name { font-weight: 700; margin: 6px 0 4px; }
 .tpl-card .desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
 
+/* PDF форматын тохиргоо */
+.fmt-box { width: min(440px, 96vw); }
+.fmt-grid { display: flex; flex-direction: column; gap: 14px; }
+.fmt-row { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
+.fmt-row select, .fmt-row input[type="range"] {
+  font: inherit; font-weight: 400; padding: 7px 10px; border: 1px solid var(--line);
+  border-radius: 8px; background: #fff;
+}
+.fmt-row input[type="range"] { padding: 0; border: 0; accent-color: var(--brand); }
+.fmt-actions { display: flex; justify-content: space-between; margin-top: 18px; }
+
 /* Print — PDF гаргац */
 @media print {
   body { background: #fff; }

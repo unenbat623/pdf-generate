@@ -371,6 +371,55 @@ $('exportDocx').addEventListener('click', async () => {
 });
 
 // ---------- Export: PDF (LaTeX / албан бичгийн стандарт) ----------
+// ---------- PDF/зурагны форматын тохиргоо ----------
+const FMT_KEY = 'pdfFormat';
+const fmtDefaults = { format: 'A4', orientation: 'auto', margin: 'normal', scale: 100 };
+function loadFmt() {
+  try {
+    return { ...fmtDefaults, ...JSON.parse(localStorage.getItem(FMT_KEY) || '{}') };
+  } catch {
+    return { ...fmtDefaults };
+  }
+}
+function fmtToUi(f) {
+  $('fmtSize').value = f.format;
+  $('fmtOrientation').value = f.orientation;
+  $('fmtMargin').value = f.margin;
+  $('fmtScale').value = f.scale;
+  $('fmtScaleVal').textContent = f.scale + '%';
+}
+function fmtSaveFromUi() {
+  const f = {
+    format: $('fmtSize').value,
+    orientation: $('fmtOrientation').value,
+    margin: $('fmtMargin').value,
+    scale: Number($('fmtScale').value) || 100,
+  };
+  localStorage.setItem(FMT_KEY, JSON.stringify(f));
+  return f;
+}
+// Экспортын хүсэлтэд хавсаргах хэлбэр
+function pdfFormatBody() {
+  const f = loadFmt();
+  return { format: f.format, orientation: f.orientation, margin: f.margin, scale: f.scale / 100 };
+}
+const fmtModal = $('fmtModal');
+$('pdfSettings').addEventListener('click', () => {
+  fmtToUi(loadFmt());
+  fmtModal.hidden = false;
+});
+const fmtClose = () => {
+  fmtSaveFromUi();
+  fmtModal.hidden = true;
+};
+$('fmtClose').addEventListener('click', fmtClose);
+$('fmtDone').addEventListener('click', fmtClose);
+$('fmtReset').addEventListener('click', () => fmtToUi({ ...fmtDefaults }));
+$('fmtScale').addEventListener('input', () => ($('fmtScaleVal').textContent = $('fmtScale').value + '%'));
+fmtModal.addEventListener('click', (e) => {
+  if (e.target === fmtModal) fmtClose();
+});
+
 $('exportPdf').addEventListener('click', async () => {
   const lang = $('exportLang').value;
   const html = editors[lang].innerHTML;
@@ -385,7 +434,7 @@ $('exportPdf').addEventListener('click', async () => {
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ html, lang }),
+        body: JSON.stringify({ html, lang, ...pdfFormatBody() }),
       },
       240000
     );
@@ -415,7 +464,7 @@ $('exportImg').addEventListener('click', async () => {
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ html, lang }),
+        body: JSON.stringify({ html, lang, ...pdfFormatBody() }),
       },
       240000
     );

@@ -48,11 +48,23 @@ function downloadName(prefix, lang, ext) {
   return `${prefix}-${safeLang}.${ext}`;
 }
 
+// PDF/зурагны форматын тохиргоог шалгаж цэвэрлэнэ
+function pdfOptions(body = {}) {
+  const o = { lang: ALLOWED_LANGS.has(body.lang) ? body.lang : 'src' };
+  if (body.orientation === 'portrait') o.landscape = false;
+  else if (body.orientation === 'landscape') o.landscape = true;
+  if (['A4', 'A3', 'A5', 'Letter'].includes(body.format)) o.format = body.format;
+  if (['normal', 'narrow', 'wide'].includes(body.margin)) o.margin = body.margin;
+  const s = Number(body.scale);
+  if (Number.isFinite(s) && s >= 0.5 && s <= 1.5 && s !== 1) o.userScale = s;
+  return o;
+}
+
 // Идэвхтэй орчуулгын провайдер
 app.get('/api/config', (_req, res) => {
   res.json({
     provider: activeProvider(),
-    version: 'ocr-image-3',
+    version: 'pdf-format-1',
     aiDesign: reconstructProvider() || null,
     // Оношилгоо: түлхүүрийн эхний 6 тэмдэгт + урт (түлхүүр өөрөө задрахгүй)
     aiKeyHint: (() => {
@@ -129,7 +141,7 @@ app.post('/api/export/pdf', async (req, res) => {
   try {
     const { html, lang } = req.body || {};
     if (!html) return res.status(400).json({ error: 'html алга.' });
-    const buffer = await htmlToPdf(html, { lang: lang || 'src' });
+    const buffer = await htmlToPdf(html, pdfOptions(req.body));
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${downloadName('document', lang, 'pdf')}"`);
     res.send(buffer);
@@ -152,7 +164,7 @@ app.post('/api/export/image', async (req, res) => {
   try {
     const { html, lang } = req.body || {};
     if (!html) return res.status(400).json({ error: 'html алга.' });
-    const images = await htmlToImages(html, { lang: lang || 'src' });
+    const images = await htmlToImages(html, pdfOptions(req.body));
     if (images.length === 1) {
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Content-Disposition', `attachment; filename="${downloadName('document', lang, 'png')}"`);

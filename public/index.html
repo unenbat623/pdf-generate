@@ -100,11 +100,58 @@
       <button id="exportDocx" class="btn">⬇ Word (.docx)</button>
       <button id="exportPdf" class="btn">⬇ PDF (хэвлэх)</button>
       <button id="exportImg" class="btn" title="Хуудас бүрийг PNG зураг болгож татна (олон хуудас бол ZIP)">⬇ Зураг (.png)</button>
+      <button id="pdfSettings" class="btn" title="PDF/зурагны формат: цаасны хэмжээ, чиглэл, зах, үсгийн хэмжээ">⚙ Формат</button>
     </div>
     <div id="status" class="status"></div>
   </footer>
 
   <div id="overlay" class="overlay" hidden><div class="spinner"></div><span id="overlayText">Ажиллаж байна…</span></div>
+
+  <!-- PDF форматын тохиргоо -->
+  <div id="fmtModal" class="modal" hidden>
+    <div class="modal-box fmt-box">
+      <div class="modal-head">
+        <strong>⚙ PDF / зурагны формат</strong>
+        <button id="fmtClose" class="btn small">✕</button>
+      </div>
+      <div class="modal-note">Тохиргоо нь PDF болон Зураг татахад хэрэглэгдэнэ. Сонголт тань хадгалагдана.</div>
+      <div class="fmt-grid">
+        <label class="fmt-row">
+          <span>Цаасны хэмжээ</span>
+          <select id="fmtSize">
+            <option value="A4" selected>A4 (энгийн)</option>
+            <option value="A3">A3 (том — өргөн хүснэгтэд)</option>
+            <option value="A5">A5 (жижиг)</option>
+            <option value="Letter">Letter (США)</option>
+          </select>
+        </label>
+        <label class="fmt-row">
+          <span>Чиглэл</span>
+          <select id="fmtOrientation">
+            <option value="auto" selected>Авто (өргөн бол хэвтээ)</option>
+            <option value="portrait">Босоо</option>
+            <option value="landscape">Хэвтээ</option>
+          </select>
+        </label>
+        <label class="fmt-row">
+          <span>Зах</span>
+          <select id="fmtMargin">
+            <option value="normal" selected>Энгийн</option>
+            <option value="narrow">Нарийн (их агуулга багтана)</option>
+            <option value="wide">Өргөн</option>
+          </select>
+        </label>
+        <label class="fmt-row">
+          <span>Үсгийн хэмжээ: <b id="fmtScaleVal">100%</b></span>
+          <input id="fmtScale" type="range" min="50" max="150" step="5" value="100" />
+        </label>
+      </div>
+      <div class="fmt-actions">
+        <button id="fmtReset" class="btn small">Анхны байдалд</button>
+        <button id="fmtDone" class="btn primary">Болсон</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Темплейт сонгох цонх -->
   <div id="tplModal" class="modal" hidden>
